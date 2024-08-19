@@ -1,7 +1,7 @@
-import SignalInterface from "./SignalInterface";
+import { SignalType } from './types'
 
-const signalStack: SignalInterface<unknown>[] = []
+const signalStack: SignalType<unknown>[] = []
 
-export default function getSignalStack(): SignalInterface<unknown>[] {
-    return signalStack
+export default function getSignalStack(): SignalType<unknown>[] {
+  return signalStack
 }

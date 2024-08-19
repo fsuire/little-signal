@@ -1,21 +1,19 @@
-import Computed, { ComputedType } from './Computed'
-import Signal from './Signal'
-import State from './State'
+import PrivateSignal from './PrivateSignal'
+import { SignalType } from './types'
 
-export default function createSignal<T>(
-  value: T | ComputedType<T> | unknown[] | Record<string, unknown>,
-  name?: string,
-): Signal<T> | Computed<T> | State<T & (unknown[] | Record<string, unknown>)> {
-  if (typeof value === 'function') {
-    return new Computed(value as ComputedType<T>, name)
-  }
+export default function createSignal<T>(value: T, name?: string): SignalType<T> {
+  const privateSignal = new PrivateSignal(
+    function (value?: T): T {
+      if (typeof value === 'undefined') {
+        return this.getValue()
+      }
+      this.setValue(value)
 
-  if (Array.isArray(value) || typeof value === 'object') {
-    return new State<T & (unknown[] | Record<string, unknown>)>(
-      value as T & (unknown[] | Record<string, unknown>),
-      name,
-    )
-  }
+      return value
+    },
 
-  return new Signal(value, name)
+    { value, name },
+  )
+
+  return privateSignal.publicSignal as SignalType<T>
 }

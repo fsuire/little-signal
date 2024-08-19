@@ -1,76 +1,162 @@
-import { Computed, Signal, State } from './little-signal'
+import littleSignal from './little-signal'
+import { SignalType } from './little-signal/types'
 import './style.scss'
 
-const firstSignal = new Signal(0)
+// === SIGNALS AND COMPUTEDS === //
 
-const getAmountTemplate = new Computed(() => {
-  return `amount: ${firstSignal.value}`
-})
+const amountSignal = littleSignal(0, 'amountSignal')
+const commentSignal = littleSignal(() => {
+  if (amountSignal() < 1) {
+    return 'Zéro ♥'
+  }
+  if (amountSignal() < 3) {
+    return 'c\'est peu'
+  }
+  if (amountSignal() < 6) {
+    return 'c\'est mieux'
+  }
+  if (amountSignal() < 10) {
+    return 'c\'est pas mal'
+  }
+  return `c'est beaucoup`
+}, 'commentSignal')
 
-const getCommentTemplate = new Computed(() => {
-  if (firstSignal.value < 2) {
-    return "comment: that's not much"
-  }
-  if (firstSignal.value < 5) {
-    return "comment: it's better"
-  }
-  if (firstSignal.value < 8) {
-    return 'comment: not bad'
-  }
-  return 'comment: amazing'
-})
-
-new Computed(() => {
-  const amountElement = document.querySelector<HTMLDivElement>('#amount')!
-  amountElement.innerHTML = getAmountTemplate.value
+littleSignal(() => {
+  const amountElement = document.querySelector('#amountSignal')!
+  amountElement.innerHTML = `amount: ${amountSignal()}`
   amountElement.classList.toggle('alternateColor')
-  const commentElement = document.querySelector<HTMLDivElement>('#comment')!
-  commentElement.innerHTML = getCommentTemplate.value
+  const commentElement = document.querySelector('#commentSignal')!
+  commentElement.innerHTML = `comment: ${commentSignal()}`
   commentElement.classList.toggle('alternateColor')
-})
+}, 'renderSignalAndComputeds')
 
-const loopId = setInterval(() => {
-  firstSignal.value++
-  if (firstSignal.value >= 10) {
-    clearInterval(loopId)
+const renderSignalAndComputedsLoopId = setInterval(() => {
+  amountSignal(amountSignal() + 1)
+  if (amountSignal() >= 10) {
+    clearInterval(renderSignalAndComputedsLoopId)
   }
 }, 1000)
 
-// -----------------------------
+// === DEEP STATE WITH OBJECT === //
 
 function getRandomNumber(max = 10): number {
-  return Math.floor(Math.random() * max);
+  return Math.floor(Math.random() * max)
 }
 
-type StateObjectType = {
-  randomNumber: number
-  anotherRandomNumber: number
-}
+const randomNumbersState = littleSignal(
+  {
+    randomNumber: -1,
+    anotherRandomNumber: -1,
+    innerState: {
+      innerRandomNumber: -1
+    },
+    justAString: 'test'
+  },
+  'randomNumbersState',
+)
 
-const stateObject = new State<StateObjectType>({
-  randomNumber: getRandomNumber(),
-  anotherRandomNumber: getRandomNumber()
-})
+littleSignal(() => {
+  const element = document.querySelector('#randomNumbersState-all')!
+  element.innerHTML = JSON.stringify(randomNumbersState(), null, 2)
+  element.classList.toggle('alternateColor')
+}, 'renderStateWithObject-all')
 
-new Computed(() => {
-  const element = document.querySelector<HTMLDivElement>('#fullStateObject')!
-  element.innerHTML = JSON.stringify(stateObject.value, null, 2)
+littleSignal(() => {
+  const element = document.querySelector('#randomNumbersState-randomNumber')!
+  element.innerHTML = randomNumbersState.randomNumber().toString()
   element.classList.toggle('alternateColor')
-}, 'renderFullStateObject')
-new Computed(() => {
-  const element = document.querySelector<HTMLDivElement>('#fullStateObject-randomNumber')!
-  element.innerHTML = `${stateObject.state.randomNumber.name}: ${stateObject.state.randomNumber.value}`
+}, 'renderStateWithObject-randomNumber')
+littleSignal(() => {
+  const element = document.querySelector('#randomNumbersState-anotherRandomNumber')!
+  element.innerHTML = randomNumbersState.anotherRandomNumber().toString()
   element.classList.toggle('alternateColor')
-}, 'renderRandomNumber')
-new Computed(() => {
-  const element = document.querySelector<HTMLDivElement>('#fullStateObject-anotherRandomNumber')!
-  element.innerHTML = `${stateObject.state.anotherRandomNumber.name}: ${stateObject.state.anotherRandomNumber.value}`
+}, 'renderStateWithObject-anotherRandomNumber')
+littleSignal(() => {
+  const element = document.querySelector('#randomNumbersState-innerRandomNumber')!
+  element.innerHTML = randomNumbersState.innerState.innerRandomNumber().toString()
   element.classList.toggle('alternateColor')
-}, 'renderAnotherRandomNumber')
+  if (randomNumbersState.innerState.innerRandomNumber() === 0) {
+    randomNumbersState.justAString('♥')
+  }
+  if (randomNumbersState.innerState.innerRandomNumber() === 9) {
+    randomNumbersState.justAString('⚓')
+  }
+}, 'renderStateWithObject-innerRandomNumber')
 
 setInterval(() => {
-  stateObject.state.randomNumber.value = getRandomNumber()
+  let newRandomNumber = getRandomNumber()
+  while (newRandomNumber === randomNumbersState.randomNumber()) {
+    newRandomNumber = getRandomNumber()
+  }
+  randomNumbersState.randomNumber(newRandomNumber)
+}, 2000)
+setInterval(() => {
+  let newRandomNumber = getRandomNumber()
+  while (newRandomNumber === randomNumbersState.anotherRandomNumber()) {
+    newRandomNumber = getRandomNumber()
+  }
+  randomNumbersState.anotherRandomNumber(newRandomNumber)
+}, 1000)
+setInterval(() => {
+  let newRandomNumber = getRandomNumber()
+  while (newRandomNumber === randomNumbersState.innerState.innerRandomNumber()) {
+    newRandomNumber = getRandomNumber()
+  }
+  randomNumbersState.innerState.innerRandomNumber(newRandomNumber)
 }, 3000)
+
+// === STATE WITH ARRAY === //
+
+const randomNumbersArray = littleSignal([-1, -1, 'test', [-1, -1]],
+  'randomNumbersArray',
+)
+
+littleSignal(() => {
+  const element = document.querySelector('#stateWithArray-all')!
+  element.innerHTML = JSON.stringify(randomNumbersArray(), null, 2)
+  element.classList.toggle('alternateColor')
+}, 'renderStateWithArray-all')
+littleSignal(() => {
+  const element = document.querySelector('#stateWithArray-number')!
+  element.innerHTML = randomNumbersArray[1]().toString()
+  element.classList.toggle('alternateColor')
+}, 'renderStateWithArray-number')
+littleSignal(() => {
+  const element = document.querySelector('#stateWithArray-string')!
+  element.innerHTML = randomNumbersArray[2]() as string
+  element.classList.toggle('alternateColor')
+}, 'renderStateWithArray-string')
+littleSignal(() => {
+  const element = document.querySelector('#stateWithArray-innerNumber')!
+  element.innerHTML = ((randomNumbersArray[3] as SignalType<Array<unknown>>)[0]() as number).toString()
+  element.classList.toggle('alternateColor')
+}, 'renderStateWithArray-innerNumber')
+
 setInterval(() => {
-  stateObject.state.anotherRandomNumber.value = getRandomNumber()
-}, 5000)
+  let newRandomNumber = getRandomNumber()
+  const signal = randomNumbersArray[1] as SignalType<number>
+  while (newRandomNumber === signal()) {
+    newRandomNumber = getRandomNumber()
+  }
+
+  const signalString = randomNumbersArray[2] as SignalType<string>
+  if (newRandomNumber === 0) {
+    signalString('♥')
+  }
+  if (newRandomNumber === 9) {
+    signalString('⚓')
+  }
+  signal(newRandomNumber)
+}, 2000)
+setInterval(() => {
+  const newRandomNumber = getRandomNumber()
+  if (newRandomNumber === 9) {
+    const wholeSubArraySignals = randomNumbersArray[3] as SignalType<number[]>
+    const previousValues = wholeSubArraySignals()
+    wholeSubArraySignals([newRandomNumber, previousValues[1] as number + 1])
+  } else {
+    ;((randomNumbersArray[3] as SignalType<Array<unknown>>)[0] as SignalType<number>)(newRandomNumber)
+  }
+}, 500)
+
+// === STATE WITH OBJECTS AND ARRAYS === //
