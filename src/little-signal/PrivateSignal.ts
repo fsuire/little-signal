@@ -1,5 +1,5 @@
-import debounce from './debounce'
-import getRandomId from './getRandomId'
+import debounce from '../debounce'
+import getRandomId from '../getRandomId'
 import getSignalStack from './getSignalStack'
 import SignalInterface from './SignalInterface'
 import { ComputedType, SignalFunctionType, SetSignalInstanceOptionsType, ExecuteOptionsType, SignalType } from './types'
