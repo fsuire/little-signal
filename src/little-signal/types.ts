@@ -22,3 +22,8 @@ export type SignalType<T> = T extends () => infer R
     : T extends Record<string, unknown>
       ? { [K in keyof T]: SignalType<T[K]> } & SignalInterface<T>
       : SignalInterface<T>
+
+export type LittleSignalCreationOptionsType = {
+  name?: string
+  deepness?: number
+}

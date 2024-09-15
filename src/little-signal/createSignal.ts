@@ -1,7 +1,12 @@
 import PrivateSignal from './PrivateSignal'
-import { SignalType } from './types'
+import { LittleSignalCreationOptionsType, SignalType } from './types'
 
-export default function createSignal<T>(value: T, name?: string): SignalType<T> {
+type ComputedCreationOptionsType = Omit<
+  LittleSignalCreationOptionsType,
+  'isDeepState' | 'shouldInnerFunctionsBeComputed'
+>
+
+export default function createSignal<T>(value: T, options: ComputedCreationOptionsType = {}): SignalType<T> {
   const privateSignal = new PrivateSignal(
     function (value?: T): T {
       if (typeof value === 'undefined') {
@@ -12,7 +17,7 @@ export default function createSignal<T>(value: T, name?: string): SignalType<T> 
       return value
     },
 
-    { value, name },
+    { value, name: options.name },
   )
 
   return privateSignal.publicSignal as SignalType<T>

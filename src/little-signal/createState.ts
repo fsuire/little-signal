@@ -1,11 +1,14 @@
 import littleSignal from './littleSignal'
 import PrivateSignal from './PrivateSignal'
-import { SignalType } from './types'
+import { LittleSignalCreationOptionsType, SignalType } from './types'
 
 export default function createState<T extends Record<string, unknown>>(
   value: T,
-  name?: string,
+  options: LittleSignalCreationOptionsType = {},
 ): { [K in keyof T]: SignalType<T[K]> } & SignalType<T> {
+  const name = options.name
+  const deepness = options.deepness ?? 0
+
   const computed = (): T => {
     const valueState = { ...privateSignal.publicSignal() } as T
     for (const key in valueState) {
@@ -29,11 +32,7 @@ export default function createState<T extends Record<string, unknown>>(
   )
 
   const signal = new Proxy(privateSignal.publicSignal, {
-    get(
-      target: SignalType<T>,
-      key: string,
-      receiver: unknown
-    ): unknown {
+    get(target: SignalType<T>, key: string, receiver: unknown): unknown {
       if (key === '_ls_') {
         return target._ls_ as PrivateSignal<T>
       }
@@ -47,7 +46,10 @@ export default function createState<T extends Record<string, unknown>>(
   const state: { [K in keyof T]: SignalType<T[K]> } = Object.keys(value).reduce(
     (acc, key) => {
       const subValue = value[key as keyof T]
-      const subSignal = littleSignal<typeof subValue>(subValue, key)
+      const subSignal = littleSignal<typeof subValue>(subValue, {
+        name: key,
+        deepness
+      })
       subSignal._ls_.subscribe(signal as SignalType<unknown>)
       acc[key as keyof T] = subSignal
       return acc

@@ -4,7 +4,7 @@ import createSignal from './createSignal'
 describe('createSignal', () => {
   test('create a simple signal', () => {
     // given
-    const signal = createSignal(1, 'simple-signal')
+    const signal = createSignal(1, { name: 'simple-signal' })
 
     // when
     signal(2)

@@ -8,10 +8,13 @@ describe('createSignal', () => {
     // given
     const deferredPromise = getDeferredPromise()
     const signal = createSignal('goodbye')
-    const computed = createComputed(() => {
-      deferredPromise.resolve()
-      return `${signal()} world`
-    }, 'simple-computed')
+    const computed = createComputed(
+      () => {
+        deferredPromise.resolve()
+        return `${signal()} world`
+      },
+      { name: 'simple-computed' },
+    )
 
     // when
     signal('hello')
