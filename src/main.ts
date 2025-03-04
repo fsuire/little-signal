@@ -9,7 +9,6 @@ function render() {
   appElement.innerHTML = `second count: ${counter.get()}`;
 }
 
-createEffect(render, counter);
+createEffect(render);
 
 setInterval(() => counter.set(counter.get() + 1), 1000);
-render();
