@@ -1,7 +1,10 @@
-import { SignalInterface } from "./types";
+import { setCurrentEffect } from "./currentEffect"
 
-export function createEffect<T>(effect: () => void, ...signals: SignalInterface<T>[]) {
-  for (const signal of signals) {
-    signal.registerEffect(effect);
-  }
+export function createEffect(effect: () => void) {
+  const selfRegisteringEffect = () => {
+    setCurrentEffect(selfRegisteringEffect);
+    effect();
+  };
+
+  selfRegisteringEffect();
 }
