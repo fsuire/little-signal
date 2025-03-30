@@ -1,28 +1,27 @@
 import { SignalInterface } from "./types";
-import { getCurrentEffect } from "./currentEffect";
+import { getCurrentSignalUserFunc } from "./currentSignalUserFunc";
 
 export function createSignal<T>(initialValue: T): SignalInterface<T> {
   let value: T = initialValue;
-  const effectList: Set<() => void> = new Set();
+  const signalUserFuncList: Set<() => void> = new Set();
   
   const signal: SignalInterface<T> = {
     get() {
-      const effect = getCurrentEffect();
-      this.registerEffect(effect);
+      const signalUserFunc = getCurrentSignalUserFunc();
+      this.registerSignalUserFunc(signalUserFunc);
 
       return value;
     },
     
     set(newValue: T) {
       value = newValue;
-      console.log('set', effectList.size)
-      for (const effect of effectList) {
-        effect();
+      for (const signalUserFunc of signalUserFuncList) {
+        signalUserFunc();
       }
     },
     
-    registerEffect(effect: () => void) {
-      effectList.add(effect);
+    registerSignalUserFunc(signalUserFunc: () => void) {
+      signalUserFuncList.add(signalUserFunc);
     }
   }
 
