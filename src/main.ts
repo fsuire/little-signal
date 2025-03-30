@@ -1,13 +1,20 @@
+import { createComputed } from "./signal/createComputed";
 import { createEffect } from "./signal/createEffect";
 import { createSignal } from "./signal/createSignal";
-import "./style.css"
+import "./style.css";
 
 const appElement = document.querySelector<HTMLDivElement>('#app')!;
 const counter = createSignal(0);
+const evenOrOdd = createComputed(() => {
+    return counter.get() % 2 ? 'odd' : 'even';
+});
+let renderCount = 0;
 
 function render() {
-  appElement.innerHTML = `second count: ${counter.get()}`;
-}
+  renderCount++;
+  console.log(renderCount)
+  appElement.innerHTML = `second count: ${counter.get()} - ${evenOrOdd.get()}`;
+};
 
 createEffect(render);
 

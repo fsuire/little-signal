@@ -1,10 +1,10 @@
-import { setCurrentEffect } from "./currentEffect"
+import { setCurrentSignalUserFunc } from "./currentSignalUserFunc"
 
 export function createEffect(effect: () => void) {
-  const selfRegisteringEffect = () => {
-    setCurrentEffect(selfRegisteringEffect);
+  const decoratedEffect = () => {
+    setCurrentSignalUserFunc(decoratedEffect);
     effect();
   };
 
-  selfRegisteringEffect();
+  decoratedEffect();
 }
